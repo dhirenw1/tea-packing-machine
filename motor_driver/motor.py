@@ -18,6 +18,13 @@ POS_MODE    = 1
 VEL_MODE    = 2
 HOMING_MODE = 3
 
+SET_VEL = 600
+SET_ACC = 50
+SET_DEC = 50
+SET_PAUSE_TIME = 0
+TRIGGER = 0x10
+STOP = 0x40
+
 class Motor:
     def __init__(self, peripheral, nodeID, baud):
         self.nodeID = nodeID
@@ -38,4 +45,7 @@ class Motor:
         hex_pos = hex(position).split('x')[-1]
         pos_h = int('0x' + hex_pos[:len(hex_pos)//2], 16)
         pos_l = int('0x' + hex_pos[len(hex_pos)//2:], 16)
-        self.interface.write_registers(PR_0_POS_H_R, [pos_h, pos_l])
+        self.interface.write_registers(PR_0_MODE_R, [POS_MODE, pos_h, pos_l, SET_VEL, SET_ACC, SET_DEC, SET_PAUSE_TIME, TRIGGER])
+
+    def stop(self):
+        self.interface.write_register(PR_0_MODE_R, STOP)
