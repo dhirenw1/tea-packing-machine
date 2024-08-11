@@ -4,4 +4,4 @@ from motor import Motor
 peripheral = '/dev/serial0'
 
 m1 = Motor(peripheral, 2, 115200)
-print(m1)
+m1.set_position(2000)
