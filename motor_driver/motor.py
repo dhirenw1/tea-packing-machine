@@ -28,6 +28,7 @@ HOMING_MODE = 3
 # Pulse per rev
 PULSES_PER_REV = 10000
 
+# Initialization constants
 SET_VEL = 600
 SET_ACC = 50
 SET_DEC = 50
@@ -76,6 +77,12 @@ class Motor:
 
     def get_status(self):
         return self.interface.read_register(MOTION_STATUS_R)
+    
+    def motor_command_done(self)
+        if self.get_status & 0x10 > 0:
+            return true
+        else:
+            return false
 
     def reset_current_alarm(self):
         self.interface.write_register(CONTROL_WORD_R, 0x1111)
