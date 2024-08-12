@@ -16,7 +16,8 @@ PR_0_SPEC_PARAM_R =   0x6207
 MOTION_STATUS_R =     0x1003
 CONTROL_WORD_R =      0x1801
 CURRENT_ALARM_R =     0x2203
-PULSES_PER_REV_R =     0x0001
+PULSES_PER_REV_R =    0x0001
+MOTOR_DIRECTON_R =    0x0007
 
 # Operation modes
 NO_MODE     = 0 
@@ -34,6 +35,8 @@ SET_PAUSE_TIME = 0
 TRIGGER = 0x10
 STOP = 0x40
 
+DIRECTION_DICT = {'CW' : 0, 'CCW' : 1}
+
 class Motor:
     def __init__(self, peripheral, nodeID, baud, pulsesPerRev=PULSES_PER_REV):
         self.nodeID = nodeID
@@ -48,7 +51,11 @@ class Motor:
         return f"{self.interface}, Pulses/Rev: {self.pulses_per_rev}"
 
     def radians_to_pulses(self, inputRadians):
-        return int(input_radians / (2 * math.pi) * PULSES_PER_REV)
+        if inputRadians < 0:
+            dir = DIRECTION_DICT['CCW']
+        else:
+            dir = DIRECTION_DICT['CW']
+        return dir, int(abs(inputRadians) / (2 * math.pi) * self.pulses_per_rev)
 
     def set_operation_mode(self, mode):
         self.interface.write_register(PR_0_MODE_R, mode, 0)
@@ -56,10 +63,12 @@ class Motor:
     # position in radians
     def set_position(self, position):
         # Convert radians to pulses
-        pulses = self.radians_to_pulses(position)
+        dir, pulses = self.radians_to_pulses(position)
         hex_pos = hex(pulses).split('x')[-1]
         pos_h = int('0x' + hex_pos[:len(hex_pos)//2], 16)
         pos_l = int('0x' + hex_pos[len(hex_pos)//2:], 16)
+        print(dir, pulses)
+        self.interface.write_register(MOTOR_DIRECTON_R, dir)
         self.interface.write_registers(PR_0_MODE_R, [POS_MODE, pos_h, pos_l, SET_VEL, SET_ACC, SET_DEC, SET_PAUSE_TIME, TRIGGER])
 
     def stop(self):
