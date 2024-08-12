@@ -12,6 +12,10 @@ PR_0_DECEL_R =        0x6205
 PR_0_PAUSE_TIME_R =   0x6206
 PR_0_SPEC_PARAM_R =   0x6207
 
+MOTION_STATUS_R =     0x1003
+CONTROL_WORD_R =      0x1801
+CURRENT_ALARM_R =     0x2203
+
 # Operation modes
 NO_MODE     = 0 
 POS_MODE    = 1
@@ -49,3 +53,15 @@ class Motor:
 
     def stop(self):
         self.interface.write_register(PR_0_MODE_R, STOP)
+
+    def get_status(self):
+        return self.interface.read_register(MOTION_STATUS_R)
+
+    def reset_current_alarm(self):
+        self.interface.write_register(CONTROL_WORD_R, 0x1111)
+
+    def reset_history_alarm(self):
+        self.interface.write_register(CONTROL_WORD_R, 0x1122)
+
+    def get_current_alarm(self):
+        return self.interface.read_register(CURRENT_ALARM_R)
