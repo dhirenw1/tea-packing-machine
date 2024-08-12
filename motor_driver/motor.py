@@ -78,11 +78,11 @@ class Motor:
     def get_status(self):
         return self.interface.read_register(MOTION_STATUS_R)
     
-    def motor_command_done(self)
+    def motor_command_done(self):
         if self.get_status & 0x10 > 0:
-            return true
+            return True
         else:
-            return false
+            return False
 
     def reset_current_alarm(self):
         self.interface.write_register(CONTROL_WORD_R, 0x1111)
