@@ -5,4 +5,9 @@ import math
 peripheral = '/dev/serial0'
 
 m1 = Motor(peripheral, 2, 115200)
-m1.set_position(3.4*math.pi)
+
+for bags in range(5):
+    m1.set_position(math.pi / 2 + math.pi / 2 * bags)
+    while m1.motor_command_done not True:
+        pass
+    m1.set_position(math.pi / 2 - math.pi / 2 * bags)
