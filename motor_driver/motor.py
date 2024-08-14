@@ -30,7 +30,7 @@ HOMING_MODE = 3
 PULSES_PER_REV = 10000
 
 # Initialization constants
-SET_VEL = 1800
+SET_VEL = 500
 SET_ACC = 12
 SET_DEC = 12
 SET_PAUSE_TIME = 0
