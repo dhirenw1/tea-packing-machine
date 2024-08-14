@@ -30,9 +30,9 @@ HOMING_MODE = 3
 PULSES_PER_REV = 10000
 
 # Initialization constants
-SET_VEL = 1400
-SET_ACC = 25
-SET_DEC = 25
+SET_VEL = 1800
+SET_ACC = 12
+SET_DEC = 12
 SET_PAUSE_TIME = 0
 TRIGGER = 0x10
 STOP = 0x40
@@ -44,7 +44,7 @@ DIRECTION_DICT = {'CW' : 0, 'CCW' : 1}
 class Motor:
     def __init__(self, peripheral, nodeID, baud, pulsesPerRev=PULSES_PER_REV):
         self.nodeID = nodeID
-        self.interface = minimalmodbus.Instrument(peripheral, nodeID, debug=True)
+        self.interface = minimalmodbus.Instrument(peripheral, nodeID, debug=False)
         self.baud = baud
         self.interface.serial.baudrate = baud
         self.pulses_per_rev = pulsesPerRev
@@ -78,7 +78,6 @@ class Motor:
         else:
             pos_h = 0
             pos_l = int('0x' + hex_pos, 16)
-        print(pos_h, pos_l, hex_pos)
         self.interface.write_register(MOTOR_DIRECTON_R, dir)
         self.interface.write_registers(PR_0_MODE_R, [POS_MODE, pos_h, pos_l, SET_VEL, SET_ACC, SET_DEC, SET_PAUSE_TIME, TRIGGER])
 
@@ -89,7 +88,6 @@ class Motor:
         return self.interface.read_register(MOTION_STATUS_R)
     
     def motor_command_done(self):
-        print(self.get_status() & 0x10)
         if self.get_status() & 0x10 > 0:
             return True
         else:
