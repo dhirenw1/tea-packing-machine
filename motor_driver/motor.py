@@ -30,9 +30,9 @@ HOMING_MODE = 3
 PULSES_PER_REV = 10000
 
 # Initialization constants
-SET_VEL = 1400
-SET_ACC = 25
-SET_DEC = 25
+SET_VEL = 400   # RPM
+SET_ACC = 20    # ms/1000RPM
+SET_DEC = 20    # ms/1000RPM
 SET_PAUSE_TIME = 0
 TRIGGER = 0x10
 STOP = 0x40
@@ -44,7 +44,7 @@ DIRECTION_DICT = {'CW' : 0, 'CCW' : 1}
 class Motor:
     def __init__(self, peripheral, nodeID, baud, pulsesPerRev=PULSES_PER_REV):
         self.nodeID = nodeID
-        self.interface = minimalmodbus.Instrument(peripheral, nodeID, debug=True)
+        self.interface = minimalmodbus.Instrument(peripheral, nodeID, debug=False)
         self.baud = baud
         self.interface.serial.baudrate = baud
         self.pulses_per_rev = pulsesPerRev
@@ -61,7 +61,7 @@ class Motor:
             dir = DIRECTION_DICT['CCW']
         else:
             dir = DIRECTION_DICT['CW']
-        return dir, int(abs(inputRadians) / (2 * math.pi) * self.pulses_per_rev)
+        return dir, int((inputRadians) / (2 * math.pi) * self.pulses_per_rev)
 
     def set_operation_mode(self, mode):
         self.interface.write_register(PR_0_MODE_R, mode, 0)
@@ -70,16 +70,16 @@ class Motor:
     def set_position(self, position):
         # Convert radians to pulses
         dir, pulses = self.radians_to_pulses(position)
-        hex_pos = hex(pulses).split('x')[-1]
+        hex_pos = hex(pulses & 0xffffffff).split('x')[-1]
         # Split out position into 2 parts if bigger than 2^16
-        if(pulses >= int16_max):
+        if(len(hex_pos) > 4):
             pos_h = int('0x' + hex_pos[:len(hex_pos)//2], 16)
             pos_l = int('0x' + hex_pos[len(hex_pos)//2:], 16)
         else:
             pos_h = 0
             pos_l = int('0x' + hex_pos, 16)
-        print(pos_h, pos_l, hex_pos)
-        self.interface.write_register(MOTOR_DIRECTON_R, dir)
+        print(hex_pos, pos_h, pos_l, pulses)
+        # self.interface.write_register(MOTOR_DIRECTON_R, dir)
         self.interface.write_registers(PR_0_MODE_R, [POS_MODE, pos_h, pos_l, SET_VEL, SET_ACC, SET_DEC, SET_PAUSE_TIME, TRIGGER])
 
     def stop(self):
@@ -89,7 +89,6 @@ class Motor:
         return self.interface.read_register(MOTION_STATUS_R)
     
     def motor_command_done(self):
-        print(self.get_status() & 0x10)
         if self.get_status() & 0x10 > 0:
             return True
         else:
