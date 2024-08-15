@@ -23,7 +23,8 @@ MOTOR_DIRECTON_R =    0x0007
 
 # Operation modes
 NO_MODE     = 0 
-POS_MODE    = 0x41
+ABS_POS_MODE    = 0x01 
+REL_POS_MODE    = 0x41
 VEL_MODE    = 2
 HOMING_MODE = 3
 
@@ -60,7 +61,7 @@ class Motor:
         self.interface.handle_local_echo=True
         try:
             self.interface.write_register(PULSES_PER_REV_R, self.pulses_per_rev)  # Set pulses per rev
-            self.interface.write_register(PR_0_MODE_R, POS_MODE)         # Set operation mode
+            self.interface.write_register(PR_0_MODE_R, ABS_POS_MODE)         # Set operation mode
         except TypeError as error:
             print(error, "Incorrect datatype used while writing to register")
         except ValueError as error:
@@ -85,7 +86,7 @@ class Motor:
         self.interface.write_register(PR_0_MODE_R, mode, 0)
 
     # position in radians
-    def set_position(self, position, vel=None, acc=None, dec=None):
+    def set_rel_position(self, position, vel=None, acc=None, dec=None):
         if vel is None:
             vel=self.setVel
         if acc is None:
@@ -107,7 +108,34 @@ class Motor:
             pos_l = int('0x' + hex_pos, 16)
         
         try:
-            self.interface.write_registers(PR_0_MODE_R, [POS_MODE, pos_h, pos_l, vel, acc, dec, SET_PAUSE_TIME, TRIGGER])
+            self.interface.write_registers(PR_0_MODE_R, [REL_POS_MODE, pos_h, pos_l, vel, acc, dec, SET_PAUSE_TIME, TRIGGER])
+        except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
+            print(error, "Node:", self.nodeID)
+            sys.exit(0)
+
+    def set_abs_position(self, position, vel=None, acc=None, dec=None):
+        if vel is None:
+            vel=self.setVel
+        if acc is None:
+            acc=self.setAcc
+        if dec is None:            
+            dec=self.setDec
+            
+        # Convert radians to pulses
+        pulses = self.radians_to_pulses(position)
+
+        hex_pos = hex(pulses & 0xffffffff).split('x')[-1]
+
+        # Split out position into 2 parts if bigger than 2 bytes, or 4 hex values
+        if(len(hex_pos) > 4):
+            pos_h = int('0x' + hex_pos[:len(hex_pos)//2], 16)
+            pos_l = int('0x' + hex_pos[len(hex_pos)//2:], 16)
+        else:
+            pos_h = 0
+            pos_l = int('0x' + hex_pos, 16)
+        
+        try:
+            self.interface.write_registers(PR_0_MODE_R, [ABS_POS_MODE, pos_h, pos_l, vel, acc, dec, SET_PAUSE_TIME, TRIGGER])
         except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
             print(error, "Node:", self.nodeID)
             sys.exit(0)
