@@ -60,7 +60,7 @@ class Motor:
             print(error, "Incorrect datatype used while writing to register")
         except ValueError as error:
             print(error, "Value too out of bounds for write to register")
-        except minimalmodbus.NoResponseError as error:
+        except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
             print(error, "Node:", self.nodeID)
             sys.exit(0)
 
@@ -97,7 +97,7 @@ class Motor:
         
         try:
             self.interface.write_registers(PR_0_MODE_R, [POS_MODE, pos_h, pos_l, SET_VEL, SET_ACC, SET_DEC, SET_PAUSE_TIME, TRIGGER])
-        except minimalmodbus.NoResponseError as error:
+        except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
             print(error, "Node:", self.nodeID)
             sys.exit(0)
 
@@ -106,11 +106,10 @@ class Motor:
 
     def get_status(self):
         try:
-            response = self.interface.read_register(MOTION_STATUS_R)
-        except minimalmodbus.NoResponseError as error:
+            return self.interface.read_register(MOTION_STATUS_R)
+        except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
             print(error, "Node:", self.nodeID) 
             sys.exit(0)
-        return response
     
     def motor_command_done(self):
         if self.get_status() & 0x10 > 0:
@@ -119,10 +118,22 @@ class Motor:
             return False
 
     def reset_current_alarm(self):
-        self.interface.write_register(CONTROL_WORD_R, 0x1111)
+        try:
+            self.interface.write_register(CONTROL_WORD_R, 0x1111)
+        except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
+            print(error, "Node:", self.nodeID)
+            sys.exit(0)
 
     def reset_history_alarm(self):
-        self.interface.write_register(CONTROL_WORD_R, 0x1122)
+        try:
+            self.interface.write_register(CONTROL_WORD_R, 0x1122)
+        except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
+            print(error, "Node:", self.nodeID)
+            sys.exit(0)
 
     def get_current_alarm(self):
-        return self.interface.read_register(CURRENT_ALARM_R)
+        try:
+            return self.interface.read_register(CURRENT_ALARM_R)
+        except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
+            print(error, "Node:", self.nodeID)
+            sys.exit(0)
