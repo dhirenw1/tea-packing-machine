@@ -18,7 +18,7 @@ NUM_BAGS_IN_BUFFER = 10
 START_POS = 6
 PUSHED_POS = 10
 
-m1 = Motor(peripheral, 1, 115200, setVel=100, setAcc=25, setDec=25)
+m1 = Motor(peripheral, 1, 115200, setVel=1400, setAcc=25, setDec=25)
 m1.set_abs_position(0)
 
 def execute_app():
