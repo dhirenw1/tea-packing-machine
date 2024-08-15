@@ -10,6 +10,7 @@ m1 = Motor(peripheral, 1, 115200)
 def execute_app():
     # for bags in range(30): 
     while True:
+        
         m1.set_position(10)
         # m1.set_position(4*math.pi + math.pi / 16 * bags)
         while m1.motor_command_done() is not True:

@@ -3,6 +3,7 @@
 import minimalmodbus
 import math
 import time
+import sys
 
 # REGISTERS
 PR_0_MODE_R =         0x6200
@@ -37,7 +38,9 @@ SET_PAUSE_TIME = 0
 TRIGGER = 0x10
 STOP = 0x40
 
-int16_max = 2**16 - 1
+int32_max = (2**31) - 1
+int32_min = (-2**31)
+
 
 DIRECTION_DICT = {'CW' : 0, 'CCW' : 1}
 
@@ -50,43 +53,63 @@ class Motor:
         self.pulses_per_rev = pulsesPerRev
         self.interface.mode = minimalmodbus.MODE_RTU
         self.interface.handle_local_echo=True
-        self.interface.write_register(PULSES_PER_REV_R, self.pulses_per_rev)  # Set pulses per rev
-        self.interface.write_register(PR_0_MODE_R, POS_MODE)         # Set operation mode
+        try:
+            self.interface.write_register(PULSES_PER_REV_R, self.pulses_per_rev)  # Set pulses per rev
+            self.interface.write_register(PR_0_MODE_R, POS_MODE)         # Set operation mode
+        except TypeError as error:
+            print(error, "Incorrect datatype used while writing to register")
+        except ValueError as error:
+            print(error, "Value too out of bounds for write to register")
+        except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
+            print(error, "Node:", self.nodeID)
+            sys.exit(0)
 
     def __str__(self):
         return f"{self.interface}, Pulses/Rev: {self.pulses_per_rev}"
 
     def radians_to_pulses(self, inputRadians):
-        if inputRadians < 0:
-            dir = DIRECTION_DICT['CCW']
-        else:
-            dir = DIRECTION_DICT['CW']
-        return dir, int((inputRadians) / (2 * math.pi) * self.pulses_per_rev)
+        pulses = int((inputRadians) / (2 * math.pi) * self.pulses_per_rev)
+        # Protect from pulse values outside of bounds
+        if pulses > int32_max:
+            pulses = int32_max
+        if pulses < int32_min:
+            pulses = int32_min
+        return pulses
 
     def set_operation_mode(self, mode):
         self.interface.write_register(PR_0_MODE_R, mode, 0)
 
     # position in radians
     def set_position(self, position):
+
         # Convert radians to pulses
-        dir, pulses = self.radians_to_pulses(position)
+        pulses = self.radians_to_pulses(position)
+
         hex_pos = hex(pulses & 0xffffffff).split('x')[-1]
-        # Split out position into 2 parts if bigger than 2^16
+
+        # Split out position into 2 parts if bigger than 2 bytes, or 4 hex values
         if(len(hex_pos) > 4):
             pos_h = int('0x' + hex_pos[:len(hex_pos)//2], 16)
             pos_l = int('0x' + hex_pos[len(hex_pos)//2:], 16)
         else:
             pos_h = 0
             pos_l = int('0x' + hex_pos, 16)
-        print(hex_pos, pos_h, pos_l, pulses)
-        # self.interface.write_register(MOTOR_DIRECTON_R, dir)
-        self.interface.write_registers(PR_0_MODE_R, [POS_MODE, pos_h, pos_l, SET_VEL, SET_ACC, SET_DEC, SET_PAUSE_TIME, TRIGGER])
+        
+        try:
+            self.interface.write_registers(PR_0_MODE_R, [POS_MODE, pos_h, pos_l, SET_VEL, SET_ACC, SET_DEC, SET_PAUSE_TIME, TRIGGER])
+        except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
+            print(error, "Node:", self.nodeID)
+            sys.exit(0)
 
     def stop(self):
         self.interface.write_register(PR_0_MODE_R, STOP)
 
     def get_status(self):
-        return self.interface.read_register(MOTION_STATUS_R)
+        try:
+            return self.interface.read_register(MOTION_STATUS_R)
+        except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
+            print(error, "Node:", self.nodeID) 
+            sys.exit(0)
     
     def motor_command_done(self):
         if self.get_status() & 0x10 > 0:
@@ -95,10 +118,22 @@ class Motor:
             return False
 
     def reset_current_alarm(self):
-        self.interface.write_register(CONTROL_WORD_R, 0x1111)
+        try:
+            self.interface.write_register(CONTROL_WORD_R, 0x1111)
+        except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
+            print(error, "Node:", self.nodeID)
+            sys.exit(0)
 
     def reset_history_alarm(self):
-        self.interface.write_register(CONTROL_WORD_R, 0x1122)
+        try:
+            self.interface.write_register(CONTROL_WORD_R, 0x1122)
+        except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
+            print(error, "Node:", self.nodeID)
+            sys.exit(0)
 
     def get_current_alarm(self):
-        return self.interface.read_register(CURRENT_ALARM_R)
+        try:
+            return self.interface.read_register(CURRENT_ALARM_R)
+        except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
+            print(error, "Node:", self.nodeID)
+            sys.exit(0)
