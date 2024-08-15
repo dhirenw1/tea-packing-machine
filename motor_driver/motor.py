@@ -45,10 +45,15 @@ int32_min = (-2**31)
 DIRECTION_DICT = {'CW' : 0, 'CCW' : 1}
 
 class Motor:
-    def __init__(self, peripheral, nodeID, baud, pulsesPerRev=PULSES_PER_REV):
+    def __init__(self, peripheral, nodeID, baud, pulsesPerRev=PULSES_PER_REV, setVel=SET_VEL, setAcc=SET_ACC, setDec=SET_DEC, setPauseTime=SET_PAUSE_TIME):
         self.nodeID = nodeID
         self.interface = minimalmodbus.Instrument(peripheral, nodeID, debug=False)
         self.baud = baud
+        self.setVel = setVel
+        self.setAcc = setAcc
+        self.setDec = setDec
+        self.setPauseTime = setPauseTime
+        
         self.interface.serial.baudrate = baud
         self.pulses_per_rev = pulsesPerRev
         self.interface.mode = minimalmodbus.MODE_RTU
@@ -80,8 +85,14 @@ class Motor:
         self.interface.write_register(PR_0_MODE_R, mode, 0)
 
     # position in radians
-    def set_position(self, position):
-
+    def set_position(self, position, vel=None, acc=None, dec=None):
+        if vel is None:
+            vel=self.setVel
+        if acc is None:
+            acc=self.setAcc
+        if dec is None:            
+            dec=self.setDec
+            
         # Convert radians to pulses
         pulses = self.radians_to_pulses(position)
 
@@ -96,7 +107,7 @@ class Motor:
             pos_l = int('0x' + hex_pos, 16)
         
         try:
-            self.interface.write_registers(PR_0_MODE_R, [POS_MODE, pos_h, pos_l, SET_VEL, SET_ACC, SET_DEC, SET_PAUSE_TIME, TRIGGER])
+            self.interface.write_registers(PR_0_MODE_R, [POS_MODE, pos_h, pos_l, vel, acc, dec, SET_PAUSE_TIME, TRIGGER])
         except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
             print(error, "Node:", self.nodeID)
             sys.exit(0)
