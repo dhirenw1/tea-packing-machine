@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from motor import Motor
+from motor_driver.motor import Motor
 import math
 import time
 from RPi import GPIO           # Allows us to call our GPIO pins and names it just GPIO
