@@ -23,7 +23,7 @@ m1.set_abs_position(0)
 
 def execute_app():
     bag = 0
-    GPIO.add_event_detect(INPUT_PIN, GPIO.FALLING, bouncetime=1)
+    # GPIO.add_event_detect(INPUT_PIN, GPIO.FALLING, bouncetime=1)
     while True:
 
         # if GPIO.event_detected(INPUT_PIN):
