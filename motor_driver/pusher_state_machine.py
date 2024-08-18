@@ -3,7 +3,7 @@
 from motor import Motor
 import math
 import time
-import RPi.GPIO as GPIO           # Allows us to call our GPIO pins and names it just GPIO
+from RPi import GPIO           # Allows us to call our GPIO pins and names it just GPIO
  
 GPIO.setmode(GPIO.BCM)           # Set's GPIO pins to BCM GPIO numbering
 INPUT_PIN = 4           # Sets our input pin, in this example I'm connecting our button to pin 4. Pin 0 is the SDA pin so I avoid using it for sensors/buttons
@@ -23,9 +23,12 @@ m1.set_abs_position(0)
 
 def execute_app():
     bag = 0
+    GPIO.add_event_detect(INPUT_PIN, GPIO.FALLING, bouncetime=1)
     while True:
 
-        if (GPIO.input(INPUT_PIN) == False):
+        # if GPIO.event_detected(INPUT_PIN):
+        # print(m1.get_read_digital_inputs())
+        if m1.get_read_digital_inputs() & 0x4 == 0x0:
             print(bag)
             if bag < NUM_BAGS_PER_COL:
                 if bag < NUM_BAGS_IN_BUFFER:
@@ -45,8 +48,9 @@ def execute_app():
                 bag += 1
             else:
                 bag = 0
-            while (GPIO.input(INPUT_PIN) == False):
+            while m1.get_read_digital_inputs() & 0x4 == 0:
                 pass
+
 
 
 def handle_cleanup():

@@ -20,6 +20,7 @@ CONTROL_WORD_R =      0x1801
 CURRENT_ALARM_R =     0x2203
 PULSES_PER_REV_R =    0x0001
 MOTOR_DIRECTON_R =    0x0007
+DIG_IN_STATE_R =      0x0179
 
 # Operation modes
 NO_MODE     = 0 
@@ -173,6 +174,13 @@ class Motor:
     def get_current_alarm(self):
         try:
             return self.interface.read_register(CURRENT_ALARM_R)
+        except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
+            print(error, "Node:", self.nodeID)
+            sys.exit(0)
+
+    def get_read_digital_inputs(self):
+        try:
+            return self.interface.read_register(DIG_IN_STATE_R)
         except (minimalmodbus.NoResponseError,  minimalmodbus.InvalidResponseError) as error:
             print(error, "Node:", self.nodeID)
             sys.exit(0)
