@@ -1,51 +1,41 @@
 import math
 import time
 from RPi import GPIO           # Allows us to call our GPIO pins and names it just GPIO
-import threading
+import multiprocessing
 
-from pusher_state_machine import main as pusher_sm
+from staging_state_machine import main as stager
 
-slider_homed = threading.Event()
-push_slider = threading.Event()
-
-def test(slider_homed, push_slider):
-    slider_homed_var = True
+def print_msg():
     while True:
-        if push_slider.is_set():
-                print("Pushing slider...")
-                push_slider.clear()
-                time.sleep(2)
-                slider_homed_var = False
-                slider_homed.clear()
-                print("HOMING SLIDER...")
-                time.sleep(5)
-                slider_homed.set()
-                slider_homed_var = True
+        print("P2")
+        time.sleep(1/60)
 
-
-
-pusher_thread = threading.Thread(target=pusher_sm, args=(slider_homed,push_slider))
-test_thread = threading.Thread(target=test, args=(slider_homed,push_slider))
+stager_process = multiprocessing.Process(target=stager)
+test_proc = multiprocessing.Process(target=print_msg)
 
 def execute_app():
-    slider_homed.set()
-    push_slider.clear()
-    pusher_thread.start()
-    test_thread.start()
+#     slider_homed.set()
+#     push_slider.clear()
+#     pusher_thread.start()
+#     test_thread.start()
+    stager_process.start()
+    test_proc.start()
+    while True:
+        pass
 
 
 def handle_cleanup():
-    # pusher_process.join()
-    pusher_thread.join()
-    test_thread.join()
-    print("done")
+#     # pusher_process.join()
+#     pusher_thread.join()
+#     test_thread.join()
+#     print("done")
+    stager_process.join()
+    test_proc.join()
 
 def main():
-    try:
-        slider_homed.set()
-        execute_app()
-    finally:
-        handle_cleanup()
+    execute_app()
+
+
 
 if __name__=='__main__':
     main()
