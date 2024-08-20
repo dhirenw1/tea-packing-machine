@@ -5,13 +5,18 @@ import multiprocessing
 
 from staging_state_machine import main as stager
 
-def print_msg():
+load_bags_event = multiprocessing.Event()
+
+
+def print_msg(event):
     while True:
+        event.wait()
         print("P2")
         time.sleep(1/60)
+        event.clear()
 
-stager_process = multiprocessing.Process(target=stager)
-test_proc = multiprocessing.Process(target=print_msg)
+stager_process = multiprocessing.Process(target=stager, args=(load_bags_event,))
+test_proc = multiprocessing.Process(target=print_msg, args=(load_bags_event,))
 
 def execute_app():
 #     slider_homed.set()
