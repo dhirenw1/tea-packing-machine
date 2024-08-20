@@ -52,10 +52,12 @@ def pusher(load_bags_event):
     bag = 0
     col = 0
     # GPIO.add_event_detect(INPUT_PIN, GPIO.FALLING, bouncetime=1)
-
+    last_in = current_in = 0
     while True:
         # if GPIO.event_detected(INPUT_PIN):
-        if m1.get_read_digital_inputs() & 0x4 == 0x0:
+        current_in = m1.get_read_digital_inputs() & 0x4 == 0x0
+
+        if current_in is True and current_in != last_in:
             # print(bag)
             if bag < NUM_BAGS_PER_COL - 1 and slider_homed is False:
                 # Load bags in buffer zone if pusher not ready
@@ -91,8 +93,9 @@ def pusher(load_bags_event):
                     load_thread.start()
 
                             # # Read digital input to see if laser untripped
-            while m1.get_read_digital_inputs() & 0x4 == 0:
-                pass
+            # while m1.get_read_digital_inputs() & 0x4 == 0:
+            #     pass
+        last_in = current_in
 
 def execute_app(load_bags_event):
     slider_flag.set()
