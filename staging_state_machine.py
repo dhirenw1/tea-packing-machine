@@ -48,38 +48,33 @@ def pusher():
                 # Load bags in buffer zone if pusher not ready
                 if bag < NUM_BAGS_IN_BUFFER:
                     m1.set_rel_position(PUSHED_POS - BAG_WIDTH*bag)
-                    while m1.motor_command_done() is not True:
-                        pass
+                    m1.wait()
                     m1.set_abs_position(START_POS)
-                    while m1.motor_command_done() is not True:
-                        pass
+                    m1.wait()
                 # Otherwise just load bags into normal staging zone
                 else:
                     m1.set_rel_position(PUSHED_POS)
-                    while m1.motor_command_done() is not True:
-                        pass
+                    m1.wait()
                     m1.set_abs_position(START_POS)
-                    while m1.motor_command_done() is not True:
-                        pass
+                    m1.wait()
+
                 bag += 1
             else:
                 bag = 0
                 # Push slider to move column into stager
                 print("STAGING")
                 m1.set_abs_position(STAGE_POS)
-                while m1.motor_command_done() is not True:
-                    pass
+                m1.wait()
 
                 print("UNSTAGING")
 
                 m1.set_abs_position(START_POS)
-                while m1.motor_command_done() is not True:
-                    pass
+                m1.wait()
 
                 stager_thread = threading.Thread(target=stage_column)
                 stager_thread.start()
 
-            # Read digital input to see if laser tripped
+            # Read digital input to see if laser untripped
             while m1.get_read_digital_inputs() & 0x4 == 0:
                 pass
 
