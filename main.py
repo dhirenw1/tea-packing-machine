@@ -7,7 +7,6 @@ from staging_state_machine import main as stager
 
 load_bags_event = multiprocessing.Event()
 
-
 def print_msg(event):
     while True:
         event.wait()
