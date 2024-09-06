@@ -5,12 +5,11 @@ import math
 import time
 from RPi import GPIO           # Allows us to call our GPIO pins and names it just GPIO
 import threading
-import configparser
+import yaml
 
 # Pull configs from config file
-config = configparser.ConfigParser()
-config.read('/home/tpm/tea-packing-machine/cfg/configuration.ini')
-cfg = config['stager']
+with open('/home/tpm/tea-packing-machine/cfg/configuration.yaml') as f:
+    cfg = yaml.load(f, Loader=yaml.FullLoader)
 
 slider_flag = threading.Event()
 slider_homed = slider_flag.is_set()
