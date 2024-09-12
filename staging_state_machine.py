@@ -85,6 +85,7 @@ def pusher(load_bags_event):
                     load_thread.start()
 
         last_in = current_in
+        time.sleep(0.01)
 
 def execute_app(load_bags_event):
     slider_flag.set()

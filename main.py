@@ -21,6 +21,7 @@ def execute_app():
     stager_process.start()
     test_proc.start()
     while True:
+        time.sleep(5.0)
         pass
 
 def handle_cleanup():
