@@ -13,6 +13,14 @@ with open('/home/tpm/tea-packing-machine/cfg/configuration.yaml') as f:
 GRIPPER_PIN = cfg['GRIPPER1_SOL_PIN']
 GPIO.setup(GRIPPER_PIN, GPIO.OUT)
 
+motor_x = Motor(cfg['SERIAL_PERIPHERAL'], 2, 115200, setVel=2000, setAcc=15, setDec=15)
+motor_y = Motor(cfg['SERIAL_PERIPHERAL'], 3, 115200, setVel=2000, setAcc=15, setDec=15)
+motor_z = Motor(cfg['SERIAL_PERIPHERAL'], 4, 115200, setVel=2000, setAcc=15, setDec=15)
+
+motor_x.set_abs_position(0)
+motor_y.set_abs_position(0)
+motor_z.set_abs_position(0)
+
 def close_gripper():
     GPIO.output(GRIPPER_PIN, GPIO.HIGH)
 
@@ -32,8 +40,9 @@ def loader(load_bags_event):
 
 def execute_app(load_bags_event):
     loader(load_bags_event=load_bags_event)
+
 def handle_cleanup():
-    m1.stop()
+    GPIO.cleanup()
 
 def main(load_bags_event):
     try:
