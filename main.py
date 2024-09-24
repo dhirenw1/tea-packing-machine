@@ -4,6 +4,7 @@ from RPi import GPIO           # Allows us to call our GPIO pins and names it ju
 import multiprocessing
 
 from staging_state_machine import main as stager
+from loading_state_machine import main as loader
 
 load_bags_event = multiprocessing.Event()
 
@@ -16,6 +17,7 @@ def print_msg(event):
 
 stager_process = multiprocessing.Process(target=stager, args=(load_bags_event,))
 test_proc = multiprocessing.Process(target=print_msg, args=(load_bags_event,))
+loader_process = multiprocessing.Process(target=loader, args=(load_bags_event,))
 
 def execute_app():
     stager_process.start()
