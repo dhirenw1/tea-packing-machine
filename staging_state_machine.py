@@ -23,6 +23,9 @@ m1 = Motor(cfg['SERIAL_PERIPHERAL'], 1, 115200, setVel=2000, setAcc=15, setDec=1
 m1.set_abs_position(0)
 
 def stage_column():
+    """ pushes slider to stage columns of tea bags
+
+    """
     slider_flag.clear()
     # print("Pushing slider...")
     time.sleep(0.01)
@@ -32,6 +35,11 @@ def stage_column():
     slider_flag.set()
 
 def load_columns(load_bags_event):
+    """ pushes slider to position below gripper, then triggers gripper to grab bags
+
+    Args:
+        load_bags_event (threading event): event to tell gripper state machine to begin loading bags into boxes
+    """
     slider_flag.clear()
     # print("Pushing slider...")
     # time.sleep(0.01)
